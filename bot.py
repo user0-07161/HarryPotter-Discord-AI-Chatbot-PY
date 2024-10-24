@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 import discord
 from discord.ext import commands
 import logging
+import random
 import re
 logger = logging.getLogger('discord') # set up the logger
 
@@ -67,8 +68,18 @@ async def on_ready():
     logger.info('------')
     # send a request to the model without caring about the response
     # just so that the model wakes up and starts loading
-    query({'inputs': 'Hello!'})
+    # query({'inputs': 'Hello!'})
+    await keep_alive()
 
+# Make a request to the model every 10 minutes to keep it alive
+async def keep_alive():
+    while True:
+        # various inputs so model loads and doesn't cache response
+        inputs = ["Hello!", "cheesecake macaroni", "potatoes", "lalala", "jajaja", "brr", "mbmb", "abcd", "xyz"]
+        # send a request to the model without caring about the response
+        query({'inputs': random.choice(inputs)})
+        logger.info('Sent keep-alive request to the model')
+        await asyncio.sleep(60 * 10)
 
 @bot.event
 async def on_message(message):
@@ -93,10 +104,6 @@ async def on_message(message):
 
     logger.info(f"Received message from {message.author.name} [{message.author.id}] in {message.guild.name}: {message.content}")
 
-    #if message.author.id in self.last_message_time:
-    #    if time.time() - self.last_message_time[message.author.id] < 5:
-    #        return
-    #self.last_message_time[message.author.id] = time.time()
     if message.author.id in bot.last_message_time:
         if time.time() - bot.last_message_time[message.author.id] < 3:
             remaining_time = round(3 - (time.time() - bot.last_message_time[message.author.id]))
