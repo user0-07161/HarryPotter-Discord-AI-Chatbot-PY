@@ -75,7 +75,7 @@ async def on_ready():
 async def keep_alive():
     while True:
         # various inputs so model loads and doesn't cache response
-        inputs = ["Hello!", "cheesecake macaroni", "potatoes", "lalala", "jajaja", "brr", "mbmb", "abcd", "xyz"]
+        inputs = ["yoo!", "wsg?", "wsp potato", "cheesecake macaroni", "potatoes", "lalala", "jajaja", "brr", "mbmb", "abcd", "xyz"]
         # send a request to the model without caring about the response
         query({'inputs': random.choice(inputs)})
         logger.info('Sent keep-alive request to the model')
@@ -93,7 +93,7 @@ async def on_message(message):
         return
     if message.author.bot:
         return
-    if (message.channel.id not in [946035894601797643, 1296840483229798460, 1297140878917242921, 1296154358832041995, 1297963659691298917]) \
+    if (message.channel.id not in [946035894601797643, 1296840483229798460, 1297140878917242921, 1296154358832041995, 1297963659691298917, 1302878387710328884]) \
         and not (bot.user.mentioned_in(message) and not (["@everyone", "@here"] in message.mentions)):
         return
 
