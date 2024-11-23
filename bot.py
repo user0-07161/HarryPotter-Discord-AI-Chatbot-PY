@@ -219,7 +219,8 @@ async def on_message(message):
                     footer="The message will be updated once the model finished loading."
                 )
             )
-            response = query(message.content, waitformodel=True)
+            async with message.channel.typing():
+                response = query(message.content, waitformodel=True)
             if response.status_code != 200:
                 await msg.edit(
                     embed=EmbedBuilder(
