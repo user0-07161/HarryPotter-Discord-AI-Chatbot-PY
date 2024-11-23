@@ -178,12 +178,12 @@ async def on_message(message):
     ):
         return
     try:
-        if time.time() - cooldown[message.author.id] < 5:
+        if time.time() - cooldown[message.author.id] < 2:
             await message.reply(
                 embed=EmbedBuilder(
                     type="info", 
                     title="❄️ Cooldown", 
-                    description=f"-# Please wait `{int(5-(time.time()-cooldown[message.author.id]))}` seconds for the cooldown to finish.",
+                    description=f"-# Please wait `{int(2-(time.time()-cooldown[message.author.id]))}` seconds for the cooldown to finish.",
                     fields=None
                 )
             )
