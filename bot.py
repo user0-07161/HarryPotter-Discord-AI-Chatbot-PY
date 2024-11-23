@@ -306,6 +306,7 @@ async def generate(interaction, prompt: str):
                 footer="The message will be updated once the model finished loading."
             )
         )
+        response = query(message.content, waitformodel=True)
         if response.status_code != 200:
             await msg.edit(
                 embed=EmbedBuilder(
