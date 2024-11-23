@@ -19,7 +19,7 @@ intents.message_content = True
 bot = commands.Bot(command_prefix="joshua!", intents=intents)
 cooldown = {}
 
-def EmbedBuilder(type: str, title: str, description: str, fields):
+def EmbedBuilder(type: str, title: str, description: str, fields={}, footer=""):
     embed = discord.Embed()
     embed.title = title
     embed.description = description
@@ -29,6 +29,8 @@ def EmbedBuilder(type: str, title: str, description: str, fields):
         embed.color = discord.Color.blurple()
     else:
         raise ValueError("type must be either \"info\" or \"error\"")
+    if footer != "":
+        embed.set_footer(text=footer)
     if fields != None:
         for field in fields:
             embed.add_field(value = fields[index(field)]["value"], name = fields[index(field)]["name"], inline = fields[index(field)]["inline"])
@@ -50,29 +52,46 @@ def UpdateChannels():
     except:
         pass
 
-def query(prompt):
+def query(prompt, waitformodel=False):
     """
     Get the response from the Hugging Face API
     """
 
     payload = {'inputs': f'You say: {prompt}\nI reply:'}
     backoff = 3
-
-    for i in range(3):
-        response = requests.post(
-            API_URL, 
-            headers = {
-                'Authorization': f'Bearer {huggingface_token}',
-                "x-use-cache": "false"
-            },
-            json = payload
-        )
-        if response.status_code == 429:
-            print("Error 429 received. Backing off...")
-            time.sleep(backoff)
-            backoff *= 2
-        else:
-            return response
+    if not waitformodel:
+        for i in range(3):
+            response = requests.post(
+                API_URL, 
+                headers = {
+                    'Authorization': f'Bearer {huggingface_token}',
+                    "x-use-cache": "false"
+                },
+                json = payload
+            )
+            if response.status_code == 429:
+                print("Error 429 received. Backing off...")
+                time.sleep(backoff)
+                backoff *= 2
+            else:
+                return response
+    else:
+        for i in range(3):
+            response = requests.post(
+                API_URL, 
+                headers = {
+                    'Authorization': f'Bearer {huggingface_token}',
+                    "x-use-cache": "false",
+                    "x-wait-for-model": "true"
+                },
+                json = payload
+            )
+            if response.status_code == 429:
+                print("Error 429 received. Backing off...")
+                time.sleep(backoff)
+                backoff *= 2
+            else:
+                return response
     return f"ERROR"
 
 @bot.event
@@ -164,7 +183,7 @@ async def on_message(message):
                 embed=EmbedBuilder(
                     type="info", 
                     title="❄️ Cooldown", 
-                    description=f"-# Please wait `{round(3-(cooldown[message.author.id]-time.time()))}` seconds for the cooldown to finish.",
+                    description=f"-# Please wait `{round(5-(cooldown[message.author.id]-time.time()))}` seconds for the cooldown to finish.",
                     fields=None
                 )
             )
@@ -191,15 +210,36 @@ async def on_message(message):
             )
             return
         elif response.status_code == 503:
-            await message.reply(
+            msg = await message.reply(
                 embed=EmbedBuilder(
                     type="info",
                     title="⌛ Model loading",
                     description=f"The model is currently loading...\nPlease wait...",
-                    fields=None
+                    fields=None,
+                    footer="The message will be updated once the model finished loading."
                 )
             )
-            return
+            response = query(message.content, waitformodel=True)
+            if response.status_code != 200:
+                await msg.edit(
+                    embed=EmbedBuilder(
+                        type="error",
+                        title="❗ Error",
+                        description=f"An error occured.\nStatus code: {response.status_code}.\nPlease contact **user0_07161**, if this error persists.",
+                        fields=None
+                    )
+                )
+                return
+            else:
+                if len(list(response.json()[0]['generated_text'].split("I reply:")[-1])) == 1:
+                    await msg.edit(
+                        content=f":{response.json()[0]['generated_text'].split("I reply:")[-1]}"
+                    )
+                else:
+                    await msg.edit(
+                        content=response.json()[0]['generated_text'].split("I reply:")[-1]
+                    )
+                return
         elif response.status_code != 200:
             await message.reply(
                 embed=EmbedBuilder(
@@ -212,7 +252,14 @@ async def on_message(message):
             return
         else:
             try:
-                await message.reply(response.json()[0]['generated_text'].split("I reply:")[-1])
+                if len(list(response.json()[0]['generated_text'].split("I reply:")[-1])) == 1:
+                    await message.reply(
+                        content=f":{response.json()[0]['generated_text'].split("I reply:")[-1]}"
+                    )
+                else:
+                    await message.reply(
+                        content=response.json()[0]['generated_text'].split("I reply:")[-1]
+                    )
             except discord.errors.HTTPException:
                 await message.reply(
                     embed=EmbedBuilder(
@@ -250,15 +297,35 @@ async def generate(interaction, prompt: str):
         )
         return
     elif response.status_code == 503:
-        await interaction.edit_original_response(
+        msg = await interaction.edit_original_response(
             embed=EmbedBuilder(
                 type="info",
                 title="⌛ Model loading",
                 description=f"The model is currently loading...\nPlease wait...",
-                fields=None
+                fields=None,
+                footer="The message will be updated once the model finished loading."
             )
         )
-        return
+        if response.status_code != 200:
+            await msg.edit(
+                embed=EmbedBuilder(
+                    type="error",
+                    title="❗ Error",
+                    description=f"An error occured.\nStatus code: {response.status_code}.\nPlease contact **user0_07161**, if this error persists.",
+                    fields=None
+                )
+            )
+            return
+        else:
+            if len(list(response.json()[0]['generated_text'].split("I reply:")[-1])) == 1:
+                await msg.edit(
+                    content=f":{response.json()[0]['generated_text'].split("I reply:")[-1]}"
+                )
+            else:
+                await msg.edit(
+                    content=response.json()[0]['generated_text'].split("I reply:")[-1]
+                )
+            return
     elif response.status_code != 200:
         await interaction.edit_original_response(
             embed=EmbedBuilder(
@@ -271,9 +338,14 @@ async def generate(interaction, prompt: str):
         return
     else:
         try:
-            await interaction.edit_original_response(
-                content=response.json()[0]['generated_text'].split("I reply:")[-1]
-            )
+            if len(list(response.json()[0]['generated_text'].split("I reply:")[-1])) == 1:
+                await interaction.edit_original_response(
+                    content=f":{response.json()[0]['generated_text'].split("I reply:")[-1]}"
+                )
+            else:
+                await interaction.edit_original_response(
+                    content=response.json()[0]['generated_text'].split("I reply:")[-1]
+                )
         except discord.errors.HTTPException:
             await interaction.edit_original_response(
                 embed=EmbedBuilder(
