@@ -320,19 +320,18 @@ async def generate(interaction, prompt: str):
                     description=f"An error occured.\nStatus code: {response.status_code}.\nPlease contact **user0_07161**, if this error persists.",
                     fields=None
                 ),
-               # suppress=True
             )
             return
         else:
             if len(list(response.json()[0]['generated_text'].split("I reply:")[-1])) == 1:
                 await msg.edit(
                     content=f":{response.json()[0]['generated_text'].split('I reply:')[-1]}",
-                   # suppress=True
+                    embed = None
                 )
             else:
                 await msg.edit(
                     content=response.json()[0]['generated_text'].split("I reply:")[-1],
-                   # suppress=True
+                    embed = None
                 )
             return
     elif response.status_code != 200:
