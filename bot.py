@@ -183,7 +183,7 @@ async def on_message(message):
                 embed=EmbedBuilder(
                     type="info", 
                     title="❄️ Cooldown", 
-                    description=f"-# Please wait `{round(5-(cooldown[message.author.id]-time.time()))}` seconds for the cooldown to finish.",
+                    description=f"-# Please wait `{int(5-(time.time()-cooldown[message.author.id]))}` seconds for the cooldown to finish.",
                     fields=None
                 )
             )
@@ -227,17 +227,20 @@ async def on_message(message):
                         title="❗ Error",
                         description=f"An error occured.\nStatus code: {response.status_code}.\nPlease contact **user0_07161**, if this error persists.",
                         fields=None
-                    )
+                    ),
+                    suppress=True
                 )
                 return
             else:
                 if len(list(response.json()[0]['generated_text'].split("I reply:")[-1])) == 1:
                     await msg.edit(
-                        content=f":{response.json()[0]['generated_text'].split('I reply:')[-1]}"
+                        content=f":{response.json()[0]['generated_text'].split('I reply:')[-1]}",
+                        suppress=True
                     )
                 else:
                     await msg.edit(
-                        content=response.json()[0]['generated_text'].split("I reply:")[-1]
+                        content=response.json()[0]['generated_text'].split("I reply:")[-1],
+                        suppress=True
                     )
                 return
         elif response.status_code != 200:
@@ -260,6 +263,7 @@ async def on_message(message):
                     await message.reply(
                         content=response.json()[0]['generated_text'].split("I reply:")[-1]
                     )
+                return
             except discord.errors.HTTPException:
                 await message.reply(
                     embed=EmbedBuilder(
@@ -314,17 +318,20 @@ async def generate(interaction, prompt: str):
                     title="❗ Error",
                     description=f"An error occured.\nStatus code: {response.status_code}.\nPlease contact **user0_07161**, if this error persists.",
                     fields=None
-                )
+                ),
+                suppress=True
             )
             return
         else:
             if len(list(response.json()[0]['generated_text'].split("I reply:")[-1])) == 1:
                 await msg.edit(
-                    content=f":{response.json()[0]['generated_text'].split('I reply:')[-1]}"
+                    content=f":{response.json()[0]['generated_text'].split('I reply:')[-1]}",
+                    suppress=True
                 )
             else:
                 await msg.edit(
-                    content=response.json()[0]['generated_text'].split("I reply:")[-1]
+                    content=response.json()[0]['generated_text'].split("I reply:")[-1],
+                    suppress=True
                 )
             return
     elif response.status_code != 200:
