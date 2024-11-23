@@ -254,7 +254,7 @@ async def on_message(message):
             try:
                 if len(list(response.json()[0]['generated_text'].split("I reply:")[-1])) == 1:
                     await message.reply(
-                        content=f":{response.json()[0]['generated_text'].split("I reply:")[-1]}"
+                        content=f":{response.json()[0]['generated_text'].split('I reply:')[-1]}"
                     )
                 else:
                     await message.reply(
@@ -340,7 +340,7 @@ async def generate(interaction, prompt: str):
         try:
             if len(list(response.json()[0]['generated_text'].split("I reply:")[-1])) == 1:
                 await interaction.edit_original_response(
-                    content=f":{response.json()[0]['generated_text'].split("I reply:")[-1]}"
+                    content=f":{response.json()[0]['generated_text'].split('I reply:')[-1]}"
                 )
             else:
                 await interaction.edit_original_response(
