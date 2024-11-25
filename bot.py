@@ -16,7 +16,7 @@ huggingface_token = os.getenv('HUGGINGFACE_TOKEN')
 API_URL = 'https://api-inference.huggingface.co/models/Ninja5000/DialoGPT-medium-HarryPotter'
 intents = discord.Intents.default()
 intents.message_content = True
-bot = commands.Bot(command_prefix="joshua!", intents=intents)
+bot = commands.Bot(command_prefix="harry!", intents=intents)
 cooldown = {}
 
 def EmbedBuilder(type: str, title: str, description: str, fields={}, footer=""):
