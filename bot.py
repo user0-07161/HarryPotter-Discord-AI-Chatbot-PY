@@ -52,25 +52,11 @@ def UpdateChannels():
     except:
         pass
 
-def query(prompt, waitformodel=False, context=[], user=discord.User):
+def query(prompt, waitformodel=False):
     """
     Get the response from the Hugging Face API
     """
-    if not context:
-        payload = {'inputs': f'You say: {prompt}\nI reply:'}
-    else:
-        ctx = []
-        for message in context:
-            if message.author == bot.user:
-                if message.content != "":
-                    ctx.append(f"I say: {message.content}")
-            try:
-                if message.author.name == user.name:
-                    if message.content != "":
-                        ctx.append(f"You say: {message.content}")
-            except:
-                raise ValueError("You must specify the user when using context.")
-        payload = {'inputs': f'{"\n".join(ctx)}\nYou say: {prompt}\nI reply:'}
+    payload = {'inputs': f'You say: {prompt}\nI reply:'}
     backoff = 3
     if not waitformodel:
         for i in range(3):
@@ -212,8 +198,7 @@ async def on_message(message):
         if user:
             message.content = message.content.replace(f'<@{match}>', f'@{user.name}')
     async with message.channel.typing():
-        messages = [msg async for msg in message.channel.history(limit=8)]
-        response = query(message.content, context=messages, user=message.author)
+        response = query(message.content)
         if "str" in str(type(response)):
             error = response.split("-")[-1]
             await message.reply(
@@ -236,7 +221,7 @@ async def on_message(message):
                 )
             )
             async with message.channel.typing():
-                response = query(message.content, waitformodel=True, context=messages, user=message.author)
+                response = query(message.content, waitformodel=True)
             if response.status_code != 200:
                 await msg.edit(
                     embed=EmbedBuilder(
