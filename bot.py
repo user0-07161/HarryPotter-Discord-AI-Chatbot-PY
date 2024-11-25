@@ -114,7 +114,7 @@ async def on_ready():
     print("Logged in and synced commands.")
 
 
-@bot.hybrid_command(name = "setup", description = "Set the channel for Joshua")
+@bot.hybrid_command(name = "setup", description = "Set the channel for Harry Potter")
 @commands.has_permissions(administrator=True)
 async def setup(ctx):
     message = await ctx.reply(
@@ -145,7 +145,7 @@ async def setup(ctx):
             )
         )
 
-@bot.hybrid_command(name = "unset", description = "Unset the channel for Joshua")
+@bot.hybrid_command(name = "unset", description = "Unset the channel for Harry Potter")
 @commands.has_permissions(administrator=True)
 async def unset(ctx):
     message = await ctx.reply(
